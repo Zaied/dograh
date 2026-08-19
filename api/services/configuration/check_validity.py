@@ -50,6 +50,7 @@ class UserConfigurationValidator:
             ServiceProviders.DOGRAH.value: self._check_dograh_api_key,
             ServiceProviders.SARVAM.value: self._check_sarvam_api_key,
             ServiceProviders.SPEECHMATICS.value: self._check_speechmatics_api_key,
+            ServiceProviders.SONIOX.value: self._check_soniox_api_key,
             ServiceProviders.CAMB.value: self._check_camb_api_key,
             ServiceProviders.AWS_BEDROCK.value: self._check_aws_bedrock_api_key,
             ServiceProviders.SPEACHES.value: self._check_speaches_api_key,
@@ -498,3 +499,29 @@ class UserConfigurationValidator:
 
     def _check_smallest_api_key(self, model: str, api_key: str) -> bool:
         return True
+
+    def _check_soniox_api_key(self, model: str, api_key: str) -> bool:
+        try:
+            response = httpx.get(
+                "https://api.soniox.com/v1/models",
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=10.0,
+            )
+            response.raise_for_status()
+            return True
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code in (401, 403):
+                raise ValueError(
+                    "Invalid Soniox API key. The key was rejected by the Soniox API. "
+                    "Please verify that your API key is correct and active. "
+                    "You can manage keys at https://console.soniox.com/."
+                ) from exc
+            raise ValueError(
+                "Could not validate the Soniox API key: the Soniox API returned "
+                f"HTTP {exc.response.status_code}. Please try again."
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise ValueError(
+                "Could not reach the Soniox API to validate the API key. "
+                "Please check your network connection and try again."
+            ) from exc

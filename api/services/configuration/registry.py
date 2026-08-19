@@ -1912,6 +1912,7 @@ STTConfig = Annotated[
         DograhSTTService,
         SpeechmaticsSTTConfiguration,
         SarvamSTTConfiguration,
+        SonioxSTTConfiguration,
         SpeachesSTTConfiguration,
         HuggingFaceSTTConfiguration,
         AssemblyAISTTConfiguration,
